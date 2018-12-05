@@ -33,7 +33,7 @@ module.exports = {
     {
       resolve: 'gatsby-source-firestore',
       options: {
-        credential: './mario-plan-2f635-cc17e295d24a.json',
+        credential: './fb-service-account-creds.json',
         types: [
           {
             type: 'Project',
