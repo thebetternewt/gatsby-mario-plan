@@ -12,12 +12,19 @@ class ProjectProvider extends Component {
   state = {
     loading: false,
     projects: null,
+    notifications: null,
     selectedProject: null,
     error: null,
     getProjects: () => this.getProjects(),
     getProject: id => this.getProject(id),
     createProject: projectData => this.createProject(projectData),
+    getNotifications: () => this.getNotifications(),
   }
+
+  // componentDidMount = async () => {
+  //   await this.getProjects()
+  //   await this.getNotifications()
+  // }
 
   getProjects = async () => {
     // get projects from db
@@ -25,15 +32,46 @@ class ProjectProvider extends Component {
 
     try {
       // Listen to collection changes and update state when project collection changes
-      store.collection('projects').onSnapshot(snap => {
-        const projectsArray = []
+      store
+        .collection('projects')
+        .orderBy('createdAt', 'desc')
+        .onSnapshot(snap => {
+          const projectsArray = []
 
-        snap.forEach(doc => {
-          projectsArray.push({ ...doc.data(), id: doc.id })
+          snap.forEach(doc => {
+            projectsArray.push({ ...doc.data(), id: doc.id })
+          })
+
+          this.setState({ projects: projectsArray, loading: false })
         })
+    } catch (err) {
+      console.error(err)
+      this.setState({ error: err, loading: false })
+    }
+  }
 
-        this.setState({ projects: projectsArray, loading: false })
-      })
+  getNotifications = async () => {
+    // get projects from db
+    this.setState({ loading: true })
+
+    try {
+      // Listen to collection changes and update state when notification collection changes
+      // TODO: only append new notifications instead of reading entire collection on every update:
+      // https://firebase.google.com/docs/firestore/query-data/listen#view_changes_between_snapshots
+
+      store
+        .collection('notifications')
+        .orderBy('time', 'desc')
+        .limit(3)
+        .onSnapshot(snap => {
+          const notificationsArray = []
+
+          snap.forEach(doc => {
+            notificationsArray.push({ ...doc.data(), id: doc.id })
+          })
+
+          this.setState({ notifications: notificationsArray, loading: false })
+        })
     } catch (err) {
       console.error(err)
       this.setState({ error: err, loading: false })
